@@ -22,8 +22,12 @@ RCT_EXPORT_MODULE()
 {
    self = [super init];
    if (self) {
+      STKAudioPlayerOptions audioOptions;
+      memset(&audioOptions, 0, sizeof(audioOptions));
+      audioOptions.enableVolumeMixer = YES;
+      audioOptions.flushQueueOnSeek = YES;
       [self setSharedAudioSessionCategory];
-      self.audioPlayer = [[STKAudioPlayer alloc] initWithOptions:(STKAudioPlayerOptions){ .flushQueueOnSeek = YES }];
+      self.audioPlayer = [[STKAudioPlayer alloc] initWithOptions:audioOptions];
       [self.audioPlayer setDelegate:self];
       self.lastUrlString = @"";
       [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(tick:) userInfo:nil repeats:YES];

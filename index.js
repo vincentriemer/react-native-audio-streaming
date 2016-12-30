@@ -127,11 +127,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: iconSize / 2,
         width: iconSize,
-        height: Platform.OS == 'ios' ? iconSize : 40,
+        height: Platform.OS === 'ios' ? iconSize : 40,
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
-        paddingTop: Platform.OS == 'ios' ? 10 : 0
+        paddingTop: Platform.OS === 'ios' ? 10 : 0
     },
     textContainer: {
         flexDirection: 'column',
