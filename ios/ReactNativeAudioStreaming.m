@@ -51,11 +51,11 @@ RCT_EXPORT_MODULE()
       NSString *url = [NSString stringWithString:self.audioPlayer.currentlyPlayingQueueItemId];
       
       [self.bridge.eventDispatcher sendDeviceEventWithName:@"AudioBridgeEvent" body:@{
-                                                                                 @"status": @"STREAMING",
-                                                                                 @"progress": progress,
-                                                                                 @"duration": duration,
-                                                                                 @"url": url,
-                                                                                 }];
+                                                                                      @"status": @"STREAMING",
+                                                                                      @"progress": progress,
+                                                                                      @"duration": duration,
+                                                                                      @"url": url,
+                                                                                      }];
    }
 }
 
@@ -75,7 +75,7 @@ RCT_EXPORT_METHOD(play:(NSString *) streamUrl options:(NSDictionary *)options)
    if (!self.audioPlayer) {
       return;
    }
-
+   
    [self activate];
    
    if (self.audioPlayer.state == STKAudioPlayerStatePaused && [self.lastUrlString isEqualToString:streamUrl]) {
@@ -83,7 +83,7 @@ RCT_EXPORT_METHOD(play:(NSString *) streamUrl options:(NSDictionary *)options)
    } else {
       [self.audioPlayer play:streamUrl];
    }
-
+   
    self.lastUrlString = streamUrl;
    self.showNowPlayingInfo = false;
    
@@ -108,7 +108,7 @@ RCT_EXPORT_METHOD(seekToTime:(double) seconds)
    if (!self.audioPlayer) {
       return;
    }
-
+   
    [self.audioPlayer seekToTime:seconds];
 }
 
@@ -181,7 +181,7 @@ RCT_EXPORT_METHOD(getStatus: (RCTResponseSenderBlock) callback)
    NSString *status = @"STOPPED";
    NSNumber *duration = [NSNumber numberWithFloat:self.audioPlayer.duration];
    NSNumber *progress = [NSNumber numberWithFloat:self.audioPlayer.progress];
-
+   
    if (!self.audioPlayer) {
       status = @"ERROR";
    } else if ([self.audioPlayer state] == STKAudioPlayerStatePlaying) {
@@ -206,6 +206,7 @@ RCT_EXPORT_METHOD(getStatus: (RCTResponseSenderBlock) callback)
 - (void)audioPlayer:(STKAudioPlayer *)player didFinishPlayingQueueItemId:(NSObject *)queueItemId withReason:(STKAudioPlayerStopReason)stopReason andProgress:(double)progress andDuration:(double)duration
 {
    NSLog(@"AudioPlayer has stopped");
+   [self.bridge.eventDispatcher sendDeviceEventWithName:@"AudioBridgeEvent" body:@{@"status": @"FINISHED"}];
 }
 
 - (void)audioPlayer:(STKAudioPlayer *)player didFinishBufferingSourceWithQueueItemId:(NSObject *)queueItemId
@@ -295,7 +296,7 @@ RCT_EXPORT_METHOD(getStatus: (RCTResponseSenderBlock) callback)
 {
    NSError *categoryError = nil;
    self.isPlayingWithOthers = [[AVAudioSession sharedInstance] isOtherAudioPlaying];
-
+   
    [[AVAudioSession sharedInstance] setActive:NO error:&categoryError];
    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:&categoryError];
    
@@ -440,13 +441,14 @@ RCT_EXPORT_METHOD(getStatus: (RCTResponseSenderBlock) callback)
    if (self.showNowPlayingInfo) {
       // TODO Get artwork from stream
       // MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc]initWithImage:[UIImage imageNamed:@"webradio1"]];
-   
+      
       NSString* appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
       NSDictionary *nowPlayingInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                       self.currentSong ? self.currentSong : @"", MPMediaItemPropertyAlbumTitle,
                                       @"", MPMediaItemPropertyAlbumArtist,
                                       appName ? appName : @"AppName", MPMediaItemPropertyTitle,
                                       [NSNumber numberWithFloat:isPlaying ? 1.0f : 0.0], MPNowPlayingInfoPropertyPlaybackRate, nil];
+      
       [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nowPlayingInfo;
    } else {
       [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nil;
